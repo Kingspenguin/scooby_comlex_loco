@@ -1,0 +1,207 @@
+task:
+  name: "pace_forward"
+
+terrain:
+  map_length: 6.0
+  map_width: 6.0
+  terrain_proportions: [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  env_rows: 6
+  env_cols: 6
+  slope_treshold: 0.75
+  static_friction: 1.0 # [-]
+  dynamic_friction: 1.0 # [-]
+  restitution: 0. # [-]
+
+env:
+  name: "terrain_vision"
+  numEnvs: 1024
+  envSpacing: 5. # [m]
+  command: "vel"
+  commandChangeStep: 200
+  risk_reward: False
+  rush_reward: False
+  vel_reward_exp_coeff: 0.25
+  robot_origin: [0., 0., 0.]
+  envOffset: [1000, 1000]
+
+  historical_buffer:
+    length_s: 1
+
+  asset:
+    penalize_contacts_on: ["trunk", "upper"]
+    terminate_after_contacts_on: ["trunk", "shoulder"]
+
+  baseInitState:
+    pos: [0.0, 0.0, 0.37] # x,y,z [m]
+    rot: [0.0, 0.0, 0.0, 1.0] # x,y,z,w [quat]
+    vLinear: [0.0, 0.0, 0.0] # x,y,z [m/s]
+    vAngular: [0.0, 0.0, 0.0] # x,y,z [rad/s]
+
+  control:
+    # PD Drive parameters:
+    legcontroller: "pd_foot"
+    stiffness: 60.0 # [N*m/rad]
+    damping: 0.8 # [N*m*s/rad]
+    actionScale: [0.08, 0.08, 0.05]
+    phaseScale: 0.05
+    foot_clearance: 0.025
+    max_foot_height: 0.1
+    stance_duration: 0.2
+    
+    controlFrequencyInv: 20 # 20 Hz
+
+  defaultJointAngles: # = target angles when action = 0.0
+    FL_upper: 0.9 # [rad]
+    RL_upper: 0.9 # [rad]
+    FR_upper: 0.9 # [rad]
+    RR_upper: 0.9 # [rad]
+
+    FL_hip: 0. # [rad]
+    RL_hip: 0. # [rad]
+    FR_hip: 0. # [rad]
+    RR_hip: 0. # [rad]
+
+    FL_lower: -1.7 # [rad]
+    RL_lower: -1.7 # [rad]
+    FR_lower: -1.7 # [rad]
+    RR_lower: -1.7 # [rad]
+
+  urdfAsset:
+    collapseFixedJoints: True
+    fixBaseLink: False
+    defaultDofDriveMode: 1 # see GymDofDriveModeFlags (0 is none, 1 is pos tgt, 2 is vel tgt, 4 effort)
+
+  learn:
+    soft_dof_pos_limit: 1.
+    soft_dof_vel_limit: 1.
+    soft_torque_limit: 1.
+
+    # normalization
+    linearVelocityScale: 2.0
+    angularVelocityScale: 0.25
+    dofPositionScale: 1.0
+    dofVelocityScale: 0.05
+    heightScale: 1.0
+
+    # episode length in seconds
+    episodeLength_s: 20
+
+    # use diagonal action
+    diagonal_act: False
+
+    push_robots: True
+    push_interval_s: 15
+    max_push_vel_xy: 0.5
+
+  controller: False
+
+  # sensor:
+  sensor:
+    historical_step: 2
+    sys_id: False
+    feet_observation: True
+    contact_force: True
+    contact_state: True
+    feet_air_time: True
+
+sim:
+  substeps: 1
+  gravity: [0., 0., -9.81] # [m/s^2]
+  up_axis: 1 # 0 is y, 1 is z
+  dt: 0.005
+  # dt: 0.005
+
+  physx:
+    num_threads: 8
+    solver_type: 1 # 0: pgs, 1: tgs
+    num_position_iterations: 4
+    num_velocity_iterations: 0
+    contact_offset: 0.01
+    rest_offset: 0.0
+    bounce_threshold_velocity: 0.5
+    max_depenetration_velocity: 1.0
+    max_gpu_contact_pairs: 16777216 # 8*1024*1024    
+    contact_collection: 1
+    default_buffer_size_multiplier: 10.0
+    
+
+learners:
+  gail:
+    nsteps: 96
+    noptepochs: 3
+    nminibatches: 16 # this is per env
+    dof: 12
+    motion_names:
+      [
+        "canter",
+        "canter00",
+        "canter01",
+        "left_turn",
+        "right_turn",
+        "pace",
+        "trot",
+        "walk00",
+        "walk01",
+      ]
+    state_dim: 12 # dof pos
+    hidden_dim: 256
+    max_grad_norm: 0.5
+    lr: 0.00001
+
+randomize_state:
+  randomize: True
+  randomization_params:
+    frequency: 10000
+    observations:
+      range: [0, .01] # range for the white noise
+      range_correlated: [0, .001] # range for correlated noise, refreshed with freq `frequency`
+      operation: "additive"
+      distribution: "gaussian"
+      schedule: "linear" # "constant" is to turn on noise after `schedule_steps` num steps
+      schedule_steps: 40000
+    actions:
+      range: [0., .05]
+      range_correlated: [0, .015] # range for correlated noise, refreshed with freq `frequency`
+      operation: "additive"
+      distribution: "gaussian"
+    actor_params:
+      a1:
+        rigid_body_properties:
+          mass:
+            range: [0.8, 1.2]
+            operation: "scaling"
+            distribution: "uniform"
+            schedule: "linear"
+            schedule_steps: 30000
+        rigid_shape_properties:
+          friction:
+            num_buckets: 250
+            range: [0.7, 1.3]
+            operation: "scaling"
+            distribution: "uniform"
+
+randomize_reward:
+  randomize: False
+  randomization_params:
+    frequency: 100000
+    reward_scale:
+      linearVelocityXYRewardScale:
+        range: [1., 3.]
+        distribution: "uniform"
+        schedule: "linear"
+        schedule_steps: 50000
+      angularVelocityZRewardScale:
+        range: [1., 2.]
+        distribution: "uniform"
+        schedule: "linear"
+        schedule_steps: 50000
+      torqueRewardScale:
+        range: [-0.000005, -0.000035]
+        distribution: "uniform"
+        schedule: "linear"
+        schedule_steps: 50000
+      actionSmoothingRewardScale:
+        range: [-0.000015, -0.000025]
+        distribution: "uniform"
+        schedule: "linear"
+        schedule_steps: 50000

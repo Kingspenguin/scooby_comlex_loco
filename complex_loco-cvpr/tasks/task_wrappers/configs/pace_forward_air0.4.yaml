@@ -1,0 +1,20 @@
+learn:
+  reward_params:
+    tracking_sigma: 0.25
+    base_height_target: 0.265
+    forward_vel: 0.4
+    forward_vel_clip: 0.0
+    max_contact_force: 150
+  reward_scales:
+    gail: 1.0
+    moving_forward: 1.0
+    lin_vel_z: -0.5
+    torques: -0.001
+    stumble: -0.002
+    feet_air_time: 0.4
+    dof_vel_limits: -0.001
+    torque_limits: -0.0002
+    orientation: -0.2
+    collision: -1
+    base_height: -2.0
+    feet_contact_force: -0.0005

@@ -1,0 +1,32 @@
+envOffset: [1000, 1000]
+prob_ground: 0.5
+surroundings:
+  # stepping_stones:
+  #   texture: "none"
+  #   static_friction: 1.0 # [-]
+  #   dynamic_friction: 1.0 # [-]
+  #   restitution: 0. # [-]
+  #   surrounding_origin: [0.0, 0., 0.]
+vision:
+  get_image: True
+  use_height_map: True
+  image_type: "depth" # depth, rgb, rgbd
+  frame_stack: 1
+  update_freq: 2 # how many control steps do we update the image buffer
+  width: 64
+  height: 64
+  camera_number: 2
+  camera_angle: 0
+
+groundType:
+  name: "terrain" # plane, mountain range,
+  staticFriction: 10.0 # [-]
+  dynamicFriction: 10.0 # [-]
+  restitution: 0. # [-]
+
+# viewer cam:
+viewer:
+  refEnv: 0
+  pos: [5, -5, 4.0] # [m]
+  lookat: [4, 0, 0.2] # [m]
+

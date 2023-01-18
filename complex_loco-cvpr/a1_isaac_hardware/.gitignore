@@ -1,0 +1,15 @@
+docs/
+docker/
+licenses/
+*.txt
+*.sh
+*logs*/
+__pycache__/
+*.pyc
+lightning_logs*/
+*.npy
+*.ckpt
+examples/
+*images/
+rma*/
+wandb*/

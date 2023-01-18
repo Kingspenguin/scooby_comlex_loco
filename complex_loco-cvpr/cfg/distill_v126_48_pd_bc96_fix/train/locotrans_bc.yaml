@@ -1,0 +1,74 @@
+# Important Note
+# This code is subject to the NDA between the Robotic Systems Lab (ETH Zurich) and NVIDIA.
+# Under no circumstances should it be made available publicly.
+# For any questions, contact David Hoeller (dhoeller@nvidia.com)
+
+seed: -1
+clip_observations: 1000.0
+clip_actions: 4.0
+policy: # only works for MlpPolicy right now
+  vf_hid_sizes: [128, 64]
+  pi_hid_sizes: [128, 64]
+  student_pi_hid_sizes: [128, 64]
+  student_vf_hid_sizes: [128, 64]
+  activation: elu # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
+  teacher_encoder_params:
+    encoder_type: "multi_height_mlp"
+    hidden_dims: [256, 128]
+    dense_height_dim: 546
+    sparse_height_dim: 209
+    state_dim: 97
+    activation: elu # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
+  student_encoder_params:
+    encoder_type: "locotransformer"
+    in_channels: 5
+    camera_num: 1
+    visual_dim: 20480
+    state_dim: 97
+    hidden_dims: [256, 128]
+    token_dim: 128
+    add_ln: False
+    add_pos_emb: False
+    max_pool: False
+    token_norm: False
+    transformer_params: [[1,256],[1,256]]
+    encoder_out: 256
+    clip_std: True
+    clip_std_upper: 1.0
+    clip_std_lower: -10
+
+learn:
+  agent_name: locot_1cam
+  test: False
+  resume: 0
+  save_interval: 500 # check for potential saves every this many iterations
+  print_log: True
+  use_fake_done: True
+
+  # number of policy updates
+  max_iterations: 20000
+
+  # training params
+  bc_loss_coef: 1.0
+  lm_loss_coef: 0.0
+  cliprange: 0.2
+  ent_coef: 0.000
+  nsteps: 96
+  noptepochs: 8
+  nminibatches: 48 # this is per agent
+  optim_stepsize: 3.e-4
+  teacher_head_optim_stepsize_scale: 0
+  schedule: fixed # could be adaptive, linear or fixed
+  gamma: 0.99
+  lam: 0.95
+  init_noise_std: 0.95
+  desired_kl: 0.008
+  log_interval: 1
+  max_grad_norm: 1.
+  distill_from_cpg: False
+  alternate_sampling: False
+  asymmetric: False
+  eval_env_nums: 256
+  value_loss_coef: 0.0
+  surrogate_loss_coef: 0.0
+  sampler: random

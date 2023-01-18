@@ -1,0 +1,54 @@
+# Important Note
+# This code is subject to the NDA between the Robotic Systems Lab (ETH Zurich) and NVIDIA.
+# Under no circumstances should it be made available publicly.
+# For any questions, contact David Hoeller (dhoeller@nvidia.com)
+
+seed: -1
+clip_observations: 1000.0
+clip_actions: 4.0
+policy: # only works for MlpPolicy right now
+  vf_hid_sizes: [512, 256, 128, 64]
+  pi_hid_sizes: [512, 256, 128, 64]
+  student_pi_hid_sizes: [256, 128, 64]
+  activation: elu # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
+  teacher_encoder_params:
+    encoder_type: "mlp"
+    hidden_dims: [256, 256]
+  student_encoder_params:
+    encoder_type: "nature_lstm_all_multiply"
+    in_channels: 2
+    visual_dim: 8192
+    state_dim: 88
+    hidden_dims: [256, 256]
+    proprioceptive_recurrent_dim: 6 # Base lin vel and angular vel need to be included in recurrent input
+    recurrent:
+      input_size: 128
+      hidden_size: 256
+      num_layers: 2
+
+learn:
+  agent_name: asymmetric_distill_recurrent_ppo_all_multiply
+  test: False
+  resume: 0
+  save_interval: 1000 # check for potential saves every this many iterations
+  print_log: True
+
+  # number of policy updates
+  max_iterations: 20000
+
+  # training params
+  bc_loss_coef: 0.5
+  lm_loss_coef: 0.5
+  cliprange: 0.2
+  ent_coef: 0.0001
+  nsteps: 64
+  noptepochs: 8
+  nminibatches: 8 # this is per agent
+  optim_stepsize: 3.e-4
+  schedule: adaptive # could be adaptive, linear or fixed
+  gamma: 0.99
+  lam: 0.95
+  init_noise_std: 0.95
+  desired_kl: 0.008
+  log_interval: 1
+  max_grad_norm: 1.

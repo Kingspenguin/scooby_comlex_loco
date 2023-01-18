@@ -1,0 +1,25 @@
+envOffset: [3, 3]
+surroundings:
+vision:
+  get_image: False
+  image_type: "depth" # depth, rgb, rgbd
+  frame_stack: 2
+  update_freq: 4 # how many control steps do we update the image buffer
+  width: 64
+  height: 64
+  camera_number: 1
+
+groundType:
+  name: "triangle_ground" # plane, mountain range,
+  staticFriction: 10.0 # [-]
+  dynamicFriction: 10.0 # [-]
+  restitution: 0. # [-]
+  scale: [5, 5, 1.5]
+  offset: [-5, -5, 0]
+
+# viewer cam:
+viewer:
+  refEnv: 0
+  pos: [5, -5, 4.0] # [m]
+  lookat: [4, 0, 0.2] # [m]
+

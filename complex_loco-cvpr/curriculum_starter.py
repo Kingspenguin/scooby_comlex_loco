@@ -1,0 +1,118 @@
+import glob
+import time
+import os
+import sys
+import subprocess
+import argparse
+from natsort import natsorted
+
+
+def checkNotFinish(popen_list):
+  for eachpopen in popen_list:
+    if eachpopen.poll() == None:
+      return True
+  return False
+
+# --headless
+# --num_envs 256
+# --cfg_train cfg/student_draw_curves/train/2cam_multiply.yaml
+# --cfg_env cfg/student_draw_curves/2cam.yaml
+# --teacher_logdir teachers/asymmetric_distill/cpg/
+# --teacher_resume 30000
+# --logdir /minghao-isaac/may6-student-curves/mask_base_vel/2cam_multiply/
+# --resume 10000
+# --max_iterations 12000
+# --add_label mask_base_vel_corl_2cam_multiply
+# --seed 1
+# --mask_base_vel;
+
+
+parser = argparse.ArgumentParser(description='RL')
+parser.add_argument('--starter', type=str,
+                    default='python')
+parser.add_argument('--file', type=str,
+                    default='train_asymmetric_distill_recurrent.py')
+parser.add_argument("--interval", type=int, default=1000,)
+parser.add_argument("--num_envs", type=int, default=512,)
+parser.add_argument("--max_iter", type=int, default=30000,)
+parser.add_argument("--start_hard_iter", type=int, default=3000,)
+parser.add_argument('--cfg_train', type=str, default='ruihan')
+parser.add_argument('--cfg_env', type=str, default='ruihan')
+parser.add_argument('--teacher_logdir', type=str, default='ruihan')
+parser.add_argument("--teacher_resume", type=int, default=30000,)
+parser.add_argument('--logdir', type=str, default='ruihan')
+parser.add_argument('--add_label', type=str, default='ruihan')
+# # parser.add_argument( "--resume", type=int, default=None,)
+parser.add_argument('--seed_base', type=int, default=0,
+                    help='random seed (default: (0,))')
+parser.add_argument('--learn_by_self', type=bool, default=False,
+                    help='value function')
+parser.add_argument('--use_pretrain_encoder', type=bool, default=False,
+                    help='')
+parser.add_argument('--pretrain_encoder_dir', type=str, default='ruihan')
+# parser.add_argument('--env_name', type=str, default="HalfCheetah-v2")
+# parser.add_argument('--name_space', type=str, default="rl-multitask")
+# parser.add_argument('--log', action='store_true')
+# parser.add_argument('--vmpo', action='store_true')
+# parser.add_argument('--repo', type=str, default="torchmetarl")
+# parser.add_argument('--pod_name', type=str, default=None)
+# parser.add_argument('--env', type=str, default=None)
+
+args = parser.parse_args()
+
+
+def run_command(command):
+  p = subprocess.Popen(command, shell=True)
+  while True:
+    if p.poll() != None:
+      break
+
+
+def run_exp():
+  start_command = "{} {} --headless --num_envs {} --cfg_train {} --cfg_env {} --teacher_logdir {} --teacher_resume {} --logdir {} --max_iterations {} --add_label {} --seed {} "
+  base_command = "{} {} --headless  --num_envs {} --cfg_train {} --cfg_env {} --teacher_logdir {} --teacher_resume {} --logdir {} --resume {} --max_iterations {} --add_label {} --seed {} --wandb_resume True"
+  if args.learn_by_self:
+    start_command += " --learn_by_self"
+  if args.use_pretrain_encoder:
+    start_command += " --use_pretrain_encoder" + \
+        " --pretrain_encoder_dir " + args.pretrain_encoder_dir
+  base_command += " --learn_by_self"
+
+  num_exp = len(list(range(0, args.max_iter, args.interval)))
+  starting_iter = 0
+
+  model_list = glob.glob(os.path.join(args.logdir, "model_*.pt"))
+  model_list = natsorted(model_list)
+  if len(model_list):
+    resume_name = model_list[-1].split("_")[-1].split(".")[0]
+    starting_iter = int(resume_name) // args.interval * args.interval
+
+  for idx, start_iter in enumerate(range(starting_iter, args.max_iter, args.interval)):
+    if start_iter == 0:
+      command = start_command.format(
+          args.starter,
+          args.file,
+          args.num_envs,
+          args.cfg_train, args.cfg_env, args.teacher_logdir,
+          args.teacher_resume, args.logdir, start_iter + args.interval, args.add_label,
+          args.seed_base * num_exp + idx
+      )
+    else:
+      command = base_command.format(
+          args.starter,
+          args.file,
+          args.num_envs,
+          args.cfg_train, args.cfg_env, args.teacher_logdir,
+          args.teacher_resume, args.logdir,
+          start_iter,
+          start_iter + args.interval, args.add_label,
+          args.seed_base * num_exp + idx
+      )
+    if start_iter >= args.start_hard_iter:
+      command += " --hard_terrain"
+    print(command)
+    run_command(command)
+
+
+if __name__ == "__main__":
+  run_exp()

@@ -1,0 +1,45 @@
+envOffset: [5, 1]
+goal_position: [3.9099999999999997, 0, 0.12699999999999995]
+prob_ground: 0.
+surroundings:
+  downstairs:
+    texture: "none"
+    static_friction: 1.0 # [-]
+    dynamic_friction: 1.0 # [-]
+    restitution: 0. # [-]
+    surrounding_origin: [0, 0., 0.]
+robot_origin:
+  [
+    [0.31, 0, 1.0970000000000002],
+    [0.61, 0, 1.0350000000000001],
+    [0.9099999999999999, 0, 0.9620000000000002],
+    [1.21, 0, 0.8780000000000001],
+    [1.51, 0, 0.7830000000000001],
+    [1.8099999999999998, 0, 0.677],
+  ]
+
+vision:
+  get_image: False
+  use_height_map: True
+  image_type: "depth" # depth, rgb, rgbd
+  frame_stack: 2
+  update_freq: 4 # how many control steps do we update the image buffer
+  width: 64
+  height: 64
+  camera_number: 1
+  camera_angle: 0
+  neck_camera: True
+
+groundType:
+  name: "plane" # plane, mountain range,
+  staticFriction: 10.0 # [-]
+  dynamicFriction: 10.0 # [-]
+  restitution: 0. # [-]
+
+# viewer cam:
+viewer:
+  refEnv: 0
+  pos: [5, -5, 4.0] # [m]
+  # pos: [5, 0.3, 3] # [m]
+  lookat: [4, 0, 0.2] # [m]
+

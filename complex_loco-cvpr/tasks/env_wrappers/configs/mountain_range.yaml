@@ -1,0 +1,25 @@
+envOffset: [5, 5]
+surroundings:
+vision:
+  get_image: False
+  image_type: "depth" # depth, rgb, rgbd
+  frame_stack: 2
+  update_freq: 4 # how many control steps do we update the image buffer
+  width: 64
+  height: 64
+  camera_number: 1
+
+groundType:
+  name: "mountain_range" # plane, mountain range,
+  staticFriction: 10.0 # [-]
+  dynamicFriction: 10.0 # [-]
+  restitution: 0. # [-]
+  offset: [50, 50, 0]
+  scale: [200, 200, 80]
+
+# viewer cam:
+viewer:
+  refEnv: 0
+  pos: [3, -3, 2.0] # [m]
+  lookat: [1.5, 0, 0.2] # [m]
+
